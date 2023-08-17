@@ -1,0 +1,56 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+# 1.2 Exploration des donnees
+- `code_insee` 
+- `nom_com`
+- `code_dep`
+- `code_reg`
+- `nbr` : nombre d’entitées dans la commune (logements + locaux professionnels)
+- `type` : logements / locaux professionnels
+- `log_cu` :  DSL (digital subscriber line) : LNA (« ligne d'accès numérique » ou « ligne numérique d'abonné »). Il s’agit d’un mode d’exploitation étendu de lignes en cuivre existantes qui permet la fourniture d’un accès fixe à internet. 
+- `log_coax` : Câble : cette technologie désigne la fourniture d’un accès fixe à internet via le réseau coaxial de télévision câblée 
+- `log_ftth` : FttH (fiber to the home) : cette technologie désigne la fourniture d’un accès fixe à internet depuis le nœud de raccordement optique (lieu d'implantation des équipements de transmission de l'opérateur) jusque dans les logements ou locaux à usage professionnel. 
+- `log_4gf` : Accès internet fixe via une box 4G. Les réseaux sont partagés entre les usages fixes et mobiles. 
+- `log_thdr` : THD Radio : cette technologie désigne un réseau radio établi spécifiquement pour proposer des accès fixes à Internet à très haut débit. Les équipements utilisent les mêmes technologies que les réseaux mobiles 4G mais le réseau n’accueille que des clients fixes et utilise une bande de fréquences différente et dédiée. 
+- `log_hdr` : HD Radio : cette technologie désigne un réseau radio établi spécifiquement pour proposer des accès fixes à Internet à haut débit. 
+- `log_sat` : Satellite : cette technologie permet de fournir des services d’accès fixe à Internet, notamment dans les territoires particulièrement mal connectés, depuis des satellites couvrant le territoire métropolitain via des faisceaux. 
+- `date`
+
+# 1.1 Chargement des donnees
+```{r}
+library(readr)
+aggregation_mci_par_communes_techno <- read_csv2('Data/mci/Agregation_MCI_par_Commune_commune-techno-beta.csv', skip = 1)
+```
+
+```{r}
+head(aggregation_mci_par_communes_techno)
+class(aggregation_mci_par_communes_techno)
+str(aggregation_mci_par_communes_techno)
+length(aggregation_mci_par_communes_techno)
+dim(aggregation_mci_par_communes_techno)
+nrow(aggregation_mci_par_communes_techno)
+ncol(aggregation_mci_par_communes_techno)
+which(is.na(aggregation_mci_par_communes_techno)) # pas de valeurs manquantes
+colnames(aggregation_mci_par_communes_techno)
+length(unique(aggregation_mci_par_communes_techno$nom_com))
+length(unique(aggregation_mci_par_communes_techno$code_insee))
+unique(aggregation_mci_par_communes_techno$type)
+unique(aggregation_mci_par_communes_techno$date) # 2 dates par communes -> 70329 lignes au total
+```
+
+# Summary statistics
+```{r}
+library(stargazer)
+summary(aggregation_mci_par_communes_techno['log_cu'])
+min(aggregation_mci_par_communes_techno$log_4gf)
+max(aggregation_mci_par_communes_techno$log_cu)
+aggregation_mci_par_communes_techno[,c(2, 5,  7:13)]
+summary(aggregation_mci_par_communes_techno[,c(2, 5,  7:13)])
+stargazer(aggregation_mci_par_communes_techno, type = 'text', summary = F)
+```
+
+

@@ -1,0 +1,99 @@
+---
+title: "Fracture Numerique et vote dans la region Auvergne-Rhones-Alpes"
+output:
+  html_document:
+    df_print: paged
+
+---
+```{r global_options, include=FALSE}
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=60),
+               tidy=TRUE,
+               warning = FALSE,
+               size = 'small',
+               fig.align = 'center',
+               out.width = "75%")
+options(width=80) 
+```
+
+```{r}
+library(tidyverse)
+library(sf)
+```
+
+### 1. Visualiser l'acces internet par commune
+
+#### Chargements des données
+```{r}
+communes_techno_france <- read_csv2('/Users/lmp/Documents/Programming/CNAM/SIG/Fracture_numerique/Data/mci/Agregation_MCI_par_Commune_commune-techno-beta.csv', skip = 1)
+communes_geo_france <- st_read('/Users/lmp/Documents/Programming/CNAM/SIG/Fracture_numerique/Data/maillage/Admin_Express_WGS84/COMMUNE.shp')
+base_immeuble_ARA <- read_csv('/Users/lmp/Documents/Programming/CNAM/SIG/Fracture_numerique/Data/mci/Auvergne-Rhone-Alpes_Base_Immeuble_20210115.csv')
+base_eligibilite_ARA <- read_csv('/Users/lmp/Documents/Programming/CNAM/SIG/Fracture_numerique/Data/mci/Auvergne-Rhone-Alpes_Base_Eligibilite_20210115.csv')
+```
+
+
+#### Donnees techno par commune sur la region Auvergne Rhones Alpes
+```{r}
+communes_techno_ARA <- communes_techno_france %>%
+  filter(code_reg == 84)
+```
+
+#### Jointure avec geographie des communes by = code_insee
+
+```{r}
+communes_techno_geo_ARA <- communes_techno_ARA %>%
+  left_join(communes_geo_france, by = c("code_insee" = "INSEE_COM"))
+```
+
+#### Manipulation 
+
+```{r}
+communes_techno_geo_ARA <- communes_techno_geo_ARA %>%
+  select(-c(code_reg, ID, NOM_COM, NOM_COM_M, POPULATION, INSEE_ARR, INSEE_REG, CODE_EPCI)) %>%
+  rename(CODE_INSEE = code_insee, NOM = nom_com, CODE_DEP = code_dep, NBR = nbr, CU = log_cu, COAX = log_coax, FO = log_ftth, QUATREGF = log_4gf, THDR = log_thdr, WMX = log_hdr, SAT = log_sat)
+```
+
+# Jointure sur la base immeuble by = addr_code_insee = code_insee
+
+```{r}
+imb_techno_geo_ARA <- communes_techno_geo_ARA %>%
+  right_join(base_immeuble_ARA, by = c("CODE_INSEE" = "imb_code_insee"))
+```
+
+# Jointure sur la base eligibilite by = imb_id 
+
+```{r}
+imb_techno_geo_eligibilite_ARA <- imb_techno_geo_ARA %>%
+  full_join(base_eligibilite_ARA, by = "imb_id")
+```
+
+```{r}
+write.csv(imb_techno_geo_eligibilite_ARA, "data.csv")
+```
+
+# Exploration spatiale sur un departement du dataset complet
+
+```{r}
+Rhones <- imb_techno_geo_eligibilite_ARA %>%
+  filter(CODE_DEP == "69")
+```
+```{r}
+View(Rhones)
+```
+
+
+# Exploration spatiale sur une commune du dataset complet
+
+```{r}
+Meyras <- imb_techno_geo_eligibilite_ARA %>%
+  filter(NOM == "Meyras")
+
+st_crs(Meyras)
+```
+
+```{r}
+Meyras %>% select(geometry) %>% plot()
+par(mar=c(1,1,1,1))
+plot(Meyras)
+```
+
